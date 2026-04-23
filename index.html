@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR SteerCo Dashboard — Avito 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f0f2f7;
+  --bg-card: #ffffff;
+  --bg-header: #1a1d2e;
+  --border: #e2e5f0;
+  --text: #1a1d2e;
+  --text2: #6b7280;
+  --text3: #9ca3af;
+  --green: #10b981;
+  --green-bg: #ecfdf5;
+  --red: #ef4444;
+  --red-bg: #fef2f2;
+  --yellow: #f59e0b;
+  --yellow-bg: #fffbeb;
+  --blue: #3b82f6;
+  --blue-bg: #eff6ff;
+  --purple: #8b5cf6;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  font-size: 14px;
+}
+/* ===== HEADER ===== */
+.header {
+  background: var(--bg-header);
+  color: #fff;
+  padding: 24px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.header p { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+/* ===== NAV ===== */
+.nav {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  position: sticky;
+  top: 68px;
+  z-index: 99;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nav a {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.nav a:hover, .nav a.active { color: var(--blue); border-bottom-color: var(--blue); }
+/* ===== LAYOUT ===== */
+.main { max-width: 1280px; margin: 0 auto; padding: 24px 24px 64px; }
+.block-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin: 40px 0 16px;
+  padding: 8px 0;
+  border-bottom: 2px solid var(--border);
+}
+.block-title:first-child { margin-top: 0; }
+.section { margin-bottom: 32px; }
+.section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.section-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  background: var(--blue-bg);
+  border-radius: 6px;
+  padding: 2px 8px;
+  min-width: 28px;
+  text-align: center;
+}
+.section-title { font-size: 16px; font-weight: 700; }
+.section-sub { font-size: 12px; color: var(--text3); }
+/* ===== CARDS ===== */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+}
+.kpi-label { font-size: 12px; color: var(--text2); font-weight: 500; margin-bottom: 4px; }
+.kpi-value { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.kpi-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.kpi-delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
+.kpi-delta.good { color: var(--green); }
+.kpi-delta.bad { color: var(--red); }
+.kpi-delta.warn { color: var(--yellow); }
+.status-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.status-dot.green { background: var(--green); }
+.status-dot.red { background: var(--red); }
+.status-dot.yellow { background: var(--yellow); }
+/* ===== TABLES ===== */
+.table-wrap { overflow-x: auto; margin-top: 12px; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text2);
+  padding: 8px 10px;
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+}
+td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #f1f3f9;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+tr:hover td { background: #f8f9fc; }
+td:first-child { white-space: normal; }
+.cell-wrap { white-space: normal; }
+.cell-red { background: #fef2f2 !important; color: var(--red); font-weight: 600; }
+.cell-green { color: var(--green); }
+.cell-bold { font-weight: 700; }
+/* ===== CHARTS ===== */
+.chart-container {
+  position: relative;
+  margin-top: 16px;
+}
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .charts-row { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .exec-kpi-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important; }
+}
+/* ===== TABS ===== */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.tab-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tab-btn:hover { background: #f8f9fc; }
+.tab-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+/* ===== HEATMAP ===== */
+.heatmap td { text-align: center; font-size: 12px; min-width: 70px; }
+.heatmap .heat-0 { background: #fff; }
+.heatmap .heat-1 { background: #fef9c3; }
+.heatmap .heat-2 { background: #fde68a; }
+.heatmap .heat-3 { background: #fdba74; }
+.heatmap .heat-4 { background: #fb923c; }
+.heatmap .heat-5 { background: #f87171; color: #fff; }
+.heatmap th:first-child, .heatmap td:first-child { text-align: left; min-width: 180px; }
+/* ===== GAUGE ===== */
+.gauges-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.gauge-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.gauge-label { font-size: 12px; color: var(--text2); font-weight: 500; margin-bottom: 8px; }
+.gauge-value { font-size: 32px; font-weight: 700; }
+.gauge-target { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.gauge-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+/* ===== COLLAPSIBLE ===== */
+.collapsible-header {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+.collapsible-header::after {
+  content: '▸';
+  transition: transform 0.2s;
+}
+.collapsible-header.open::after { transform: rotate(90deg); }
+.collapsible-body { display: none; }
+.collapsible-body.open { display: block; }
+/* ===== DRILL-DOWN (collapsible detail tables) ===== */
+.detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1.5px solid var(--blue);
+  border-radius: 10px;
+  background: var(--blue-bg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 16px;
+}
+.detail-toggle:hover { background: var(--blue); color: #fff; }
+.detail-toggle::before { content: '▸'; transition: transform 0.2s; font-size: 14px; }
+.detail-toggle.open::before { transform: rotate(90deg); }
+.detail-body { display: none; margin-top: 12px; }
+.detail-body.open { display: block; }
+/* ===== KEY INSIGHT ===== */
+.insight {
+  background: var(--blue-bg);
+  border-left: 3px solid var(--blue);
+  padding: 12px 16px;
+  border-radius: 0 8px 8px 0;
+  margin: 12px 0;
+  font-size: 13px;
+}
+.insight.warning {
+  background: var(--yellow-bg);
+  border-left-color: var(--yellow);
+}
+.insight.danger {
+  background: var(--red-bg);
+  border-left-color: var(--red);
+}
+/* ===== STRUCTURED INSIGHT ===== */
+.insight-structured { padding: 14px 18px; }
+.insight-structured .insight-status { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.insight-structured .insight-line { font-size: 12px; color: var(--text); margin: 3px 0; }
+.insight-structured .insight-line strong { color: var(--text2); font-weight: 600; }
+/* ===== EXECUTIVE SUMMARY ===== */
+.exec-summary {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  box-shadow: var(--shadow-lg);
+  margin-bottom: 32px;
+}
+.exec-summary h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.exec-summary .exec-date {
+  font-size: 12px;
+  color: var(--text3);
+  margin-bottom: 20px;
+}
+.exec-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.exec-kpi {
+  text-align: center;
+  padding: 16px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.exec-kpi .exec-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text2);
+  margin-bottom: 6px;
+}
+.exec-kpi .exec-kpi-value {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.exec-kpi .exec-kpi-status {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+.exec-overall {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  background: var(--yellow-bg);
+  border: 1px solid rgba(245,158,11,0.2);
+  margin-bottom: 20px;
+}
+.exec-overall-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.exec-overall-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.exec-overall-text span {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--text2);
+  display: block;
+  margin-top: 2px;
+}
+.exec-challenges {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 768px) {
+  .exec-challenges { grid-template-columns: 1fr; }
+}
+.exec-challenge {
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+.exec-challenge-title {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.exec-challenge.red { background: var(--red-bg); border-left: 3px solid var(--red); }
+.exec-challenge.red .exec-challenge-title { color: var(--red); }
+.exec-challenge.yellow { background: var(--yellow-bg); border-left: 3px solid var(--yellow); }
+.exec-challenge.yellow .exec-challenge-title { color: var(--yellow); }
+/* ===== CLICKABLE EXEC CARDS ===== */
+.exec-kpi-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.exec-kpi-link:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+.exec-challenge-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.exec-challenge-link:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+/* ===== TOOLTIP (CSS-only) ===== */
+[data-tip] {
+  position: relative;
+  border-bottom: 1px dashed var(--text3);
+  cursor: help;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-header);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  width: max-content;
+  max-width: min(600px, 90vw);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 50;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+[data-tip]:hover::after { opacity: 1; }
+/* ===== ACCENT BORDER for problem KPIs ===== */
+.kpi-alert { border-left: 3px solid var(--red); }
+.kpi-warn { border-left: 3px solid var(--yellow); }
+/* ===== BACK TO TOP ===== */
+.back-to-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg-header);
+  color: #fff;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.15s;
+  z-index: 90;
+}
+.back-to-top.visible { opacity: 1; pointer-events: auto; }
+.back-to-top:hover { transform: scale(1.1); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>HR SteerCo</h1>
+  <p>Данные к первой встрече &middot; Авито 2026 &middot; Выгрузка 21-22 апреля 2026 &middot; Конфиденциально</p>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <a href="#summary" class="active">Summary</a>
+  <a href="#s01">01 Headcount</a>
+  <a href="#s02">02 Attrition</a>
+  <a href="#s03">03 Regrettable</a>
+  <a href="#s04">04 Причины</a>
+  <a href="#s05">05 Вакансии</a>
+  <a href="#s06">06 <span data-tip="Staff Cost / Revenue — доля ФОТ в выручке">ФОТ/Выручка</span></a>
+  <a href="#s07">07 Отпуска</a>
+  <a href="#s08">08 <span data-tip="Span of Control — кол-во прямых подчинённых на менеджера. Нормы различаются по типу роли (MoM, FLM, TL и др.)">SoC</span></a>
+  <a href="#s09">09 HR/Staff</a>
+  <a href="#s10">10 Ставки</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ===================== EXECUTIVE SUMMARY ===================== -->
+<div class="exec-summary section" id="summary">
+  <h2>Executive Summary</h2>
+  <div class="exec-date">Снимок: март 2026 &middot; Источники: IBM, HR Redash, Finance Dashboard, OrgDesign</div>
+
+  <div class="exec-kpi-grid">
+    <a href="#s01" class="exec-kpi exec-kpi-link">
+      <div class="exec-kpi-label"><span data-tip="Headcount — общая численность сотрудников">HC</span> All Avito</div>
+      <div class="exec-kpi-value">11 468</div>
+      <div class="exec-kpi-status" style="color:var(--red)">Completeness 94.66% &darr;</div>
+    </a>
+    <a href="#s02" class="exec-kpi exec-kpi-link">
+      <div class="exec-kpi-label">Attrition (мес.)</div>
+      <div class="exec-kpi-value" style="color:var(--green)">1.83%</div>
+      <div class="exec-kpi-status" style="color:var(--green)">Target 2.7% &check;</div>
+    </a>
+    <a href="#s06" class="exec-kpi exec-kpi-link">
+      <div class="exec-kpi-label"><span data-tip="Staff Cost / Revenue — доля ФОТ в выручке">SCVR</span> Total</div>
+      <div class="exec-kpi-value" style="color:var(--green)">24.01%</div>
+      <div class="exec-kpi-status" style="color:var(--green)">-3.33pp vs план</div>
+    </a>
+    <a href="#s05" class="exec-kpi exec-kpi-link">
+      <div class="exec-kpi-label">Open Vacancies</div>
+      <div class="exec-kpi-value">316</div>
+      <div class="exec-kpi-status" style="color:var(--green)">54% Green</div>
+    </a>
+    <a href="#s08" class="exec-kpi exec-kpi-link">
+      <div class="exec-kpi-label"><span data-tip="Span of Control — ниже нормы по дифференцированным правилам (MoM ≤3, FLM ≤2, спецправила для Support, Operations, Sales и др.)">SoC</span> Red %</div>
+      <div class="exec-kpi-value" style="color:var(--yellow)">21.1%</div>
+      <div class="exec-kpi-status" style="color:var(--yellow)">359 менеджеров</div>
+    </a>
+  </div>
+
+  <div class="exec-overall">
+    <div class="exec-overall-icon">&#9888;&#65039;</div>
+    <div class="exec-overall-text">
+      Общий статус: требует внимания
+      <span>Операционные метрики в норме (attrition, SCVR, vacancies). Три зоны требуют мер: completeness ниже target впервые за 12 мес, фрагментация SoC в 4 функциях, отпускной долг в Fintech и M&A.</span>
+    </div>
+  </div>
+
+  <div class="exec-challenges">
+    <a href="#s01" class="exec-challenge red exec-challenge-link">
+      <div class="exec-challenge-title">Completeness &lt; Target</div>
+      94.66% при target 95%. Впервые ниже порога за 12 месяцев. Причина: смена бюджетной версии &rarr; план вырос, HC остался. Требует корректировки плана или ускорения найма.
+    </a>
+    <a href="#s07" class="exec-challenge red exec-challenge-link">
+      <div class="exec-challenge-title">Отпуска: Fintech & M&A</div>
+      Plan+Fact 31.9% и 17.7% — P&L-риск и нарушение ТК РФ (ст. 115). HRBP готовят план мер.
+    </a>
+    <a href="#s08" class="exec-challenge yellow exec-challenge-link">
+      <div class="exec-challenge-title">SoC: фрагментация</div>
+      4 функции с Red &gt; 50%: Strategy (71%), Fintech (67%), PR (50%), Business dev (53%). Оценка по дифференцированным нормам (MoM/FLM/спецправила). Организационная неэффективность, рост управленческих расходов.
+    </a>
+  </div>
+</div>
+
+<!-- ===================== БЛОК 1: WORKFORCE CONDITION ===================== -->
+<div class="block-title">Блок 1 &mdash; Workforce Condition</div>
+
+<!-- 01 HEADCOUNT -->
+<div class="section" id="s01">
+  <div class="section-head">
+    <span class="section-num">01</span>
+    <span class="section-title">Headcount & Completeness</span>
+    <span class="section-sub">Источник: IBM &middot; Снимок март 2026</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label"><span data-tip="Headcount — общая численность сотрудников">HC</span> All Avito</div>
+      <div class="kpi-value">11 468</div>
+      <div class="kpi-sub">Снимок на дату</div>
+    </div>
+    <div class="kpi kpi-alert">
+      <div class="kpi-label">Completeness %</div>
+      <div class="kpi-value" style="color:var(--red)">94.66%</div>
+      <div class="kpi-delta bad">&#x25BC; Target: 95% &mdash; впервые ниже target за 12 мес</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">План (2026_Budget)</div>
+      <div class="kpi-value">12 115</div>
+      <div class="kpi-sub">Бюджетная версия</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label"><span data-tip="HC vs Previous Year — сравнение с аналогичным периодом прошлого года">HC vs PY</span></div>
+      <div class="kpi-value" style="color:var(--green)">+376</div>
+      <div class="kpi-sub">vs 11 092 (март 2025)</div>
+    </div>
+  </div>
+
+  <div class="insight-structured danger" style="background:var(--red-bg);border-left:3px solid var(--red);padding:14px 18px;border-radius:0 8px 8px 0;margin:12px 0;">
+    <div class="insight-status" style="color:var(--red)">&#x1F534; Completeness ниже target</div>
+    <div class="insight-line"><strong>Ситуация:</strong> 94.66% при target 95%, впервые ниже порога за 12 месяцев.</div>
+    <div class="insight-line"><strong>Причина:</strong> Смена бюджетной версии в янв 2026 &rarr; план вырос с 11 977 до 12 115, HC остался. Структурный эффект, не провал найма.</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> Пересмотреть целевой HC в рамках <span data-tip="Business Review Forecast — периодический пересмотр бюджета">BRF</span> Q2 или ускорить найм на 647 FTE.</div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card"><canvas id="chart-hc"></canvas></div>
+    <div class="card"><canvas id="chart-completeness"></canvas></div>
+  </div>
+
+  <button class="detail-toggle" onclick="toggleDetail(this)">Детальная таблица по месяцам</button>
+  <div class="detail-body">
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Месяц</th><th>HC факт</th><th>MoM &Delta;</th><th>План</th><th>Completeness</th><th>Target</th><th>Версия бюджета</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Апр 2025</td><td>11 381</td><td>&mdash;</td><td>11 622</td><td class="cell-green">97.9%</td><td>95%</td><td>2025_BRF_4</td></tr>
+            <tr><td>Май 2025</td><td>11 527</td><td>+146</td><td>11 966</td><td class="cell-green">96.3%</td><td>95%</td><td>2025_BRF_4</td></tr>
+            <tr><td>Июн 2025</td><td>11 697</td><td>+170</td><td>12 177</td><td class="cell-green">96.1%</td><td>95%</td><td>2025_BRF_4</td></tr>
+            <tr><td>Июл 2025</td><td>11 822</td><td>+125</td><td>12 052</td><td class="cell-green">98.1%</td><td>95%</td><td>2025_BRF_7</td></tr>
+            <tr><td>Авг 2025</td><td>11 671</td><td>-151</td><td>12 227</td><td class="cell-green">95.5%</td><td>95%</td><td>2025_BRF_7</td></tr>
+            <tr><td>Сен 2025</td><td>11 857</td><td>+186</td><td>12 298</td><td class="cell-green">96.4%</td><td>95%</td><td>2025_BRF_7</td></tr>
+            <tr><td>Окт 2025</td><td>11 756</td><td>-101</td><td>12 357</td><td class="cell-green">95.1%</td><td>95%</td><td>2025_BRF_7</td></tr>
+            <tr><td>Ноя 2025</td><td>11 661</td><td>-95</td><td>12 018</td><td class="cell-green">97.0%</td><td>95%</td><td>2025_BRF_11</td></tr>
+            <tr><td>Дек 2025</td><td>11 788</td><td>+127</td><td>11 977</td><td class="cell-green">98.4%</td><td>95%</td><td>2025_BRF_11</td></tr>
+            <tr><td>Янв 2026</td><td>11 628</td><td>-160</td><td>11 912</td><td class="cell-green">97.6%</td><td>95%</td><td>2026_Budget</td></tr>
+            <tr><td>Фев 2026</td><td>11 447</td><td>-181</td><td>11 995</td><td class="cell-green">95.4%</td><td>95%</td><td>2026_Budget</td></tr>
+            <tr><td class="cell-bold">Мар 2026</td><td class="cell-bold">11 468</td><td>+21</td><td>12 115</td><td class="cell-red">94.7%</td><td>95%</td><td>2026_Budget</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 02 ATTRITION -->
+<div class="section" id="s02">
+  <div class="section-head">
+    <span class="section-num">02</span>
+    <span class="section-title">Attrition &mdash; All Avito, по грейдам, <span data-tip="Product & Technology — технические и продуктовые роли">PnT</span> vs Non-PnT</span>
+    <span class="section-sub">Источник: HR Redash</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Attrition % (месяц, март 2026)</div>
+      <div class="kpi-value" style="color:var(--green)">1.83%</div>
+      <div class="kpi-delta good">&#x25BC; Target: 2.7%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Attrition <span data-tip="Year-To-Date — накопленное значение с начала года">YTD</span></div>
+      <div class="kpi-value" style="color:var(--green)">29.7%</div>
+      <div class="kpi-delta good">= Target YTD 35.1%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label"><span data-tip="Product & Technology — технические и продуктовые роли">P&T</span> Attrition (мес.)</div>
+      <div class="kpi-value" style="color:var(--green)">1.10%</div>
+      <div class="kpi-sub">Target: 1.3%</div>
+    </div>
+    <div class="kpi kpi-warn">
+      <div class="kpi-label">Non-<span data-tip="Product & Technology">PnT</span> Attrition (мес.)</div>
+      <div class="kpi-value" style="color:var(--green)">2.28%</div>
+      <div class="kpi-sub">Target: 2.7%</div>
+    </div>
+  </div>
+
+  <div class="insight-structured" style="background:var(--blue-bg);border-left:3px solid var(--blue);padding:14px 18px;border-radius:0 8px 8px 0;margin:12px 0;">
+    <div class="insight-status" style="color:var(--green)">&#x1F7E2; Месячный attrition в норме</div>
+    <div class="insight-line"><strong>Ситуация:</strong> All Avito 1.83% при target 2.7%. Все разрезы ниже порога.</div>
+    <div class="insight-line"><strong>Внимание:</strong> P&T <span data-tip="Year-To-Date — с начала года">YTD</span> (20.77%) превышает target (16.9%) — накопленный эффект с сент 2025 + февральский бонусный пик (4.05%).</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> Мониторинг P&T в Q2, ретеншн-программа для грейдов 12-14+.</div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card"><canvas id="chart-attrition-all"></canvas></div>
+    <div class="card"><canvas id="chart-attrition-tech"></canvas></div>
+  </div>
+
+  <button class="detail-toggle" onclick="toggleDetail(this)">Детали: таблица по грейдам + P&T vs Non-PnT</button>
+  <div class="detail-body">
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:12px">Ежемесячный Attrition по группам грейдов</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Месяц</th><th>5-9 (4.0%)</th><th>10-11 (1.87%)</th><th>12 (1.87%)</th><th>13 (1.87%)</th><th>14+ (1.87%)</th><th>All Avito (2.7%)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Мар 2025</td><td>3.37%</td><td class="cell-red">2.08%</td><td>1.50%</td><td>0.88%</td><td>0.19%</td><td>2.33%</td></tr>
+            <tr><td>Апр 2025</td><td>3.46%</td><td>1.43%</td><td>1.34%</td><td>0.96%</td><td class="cell-red">3.17%</td><td>2.25%</td></tr>
+            <tr><td>Май 2025</td><td>2.93%</td><td>1.12%</td><td>1.72%</td><td>0.82%</td><td>1.84%</td><td>1.92%</td></tr>
+            <tr><td>Июн 2025</td><td>2.85%</td><td>1.22%</td><td>1.25%</td><td>1.06%</td><td>0.18%</td><td>1.85%</td></tr>
+            <tr><td>Июл 2025</td><td>3.59%</td><td>1.53%</td><td>1.99%</td><td>1.51%</td><td>1.46%</td><td>2.42%</td></tr>
+            <tr><td>Авг 2025</td><td class="cell-red">4.20%</td><td>1.66%</td><td>2.04%</td><td>1.51%</td><td>1.81%</td><td>2.67%</td></tr>
+            <tr><td>Сен 2025</td><td>3.34%</td><td class="cell-red">2.34%</td><td>1.98%</td><td class="cell-red">2.04%</td><td class="cell-red">1.86%</td><td>2.64%</td></tr>
+            <tr><td>Окт 2025</td><td>3.33%</td><td class="cell-red">2.06%</td><td>1.74%</td><td>1.80%</td><td>1.17%</td><td>2.61%</td></tr>
+            <tr><td>Ноя 2025</td><td>3.63%</td><td>1.21%</td><td>1.37%</td><td>1.69%</td><td>1.51%</td><td>2.19%</td></tr>
+            <tr><td>Дек 2025</td><td>3.46%</td><td>1.37%</td><td>1.75%</td><td>1.43%</td><td class="cell-red">2.71%</td><td>2.31%</td></tr>
+            <tr><td>Янв 2026</td><td>2.10%</td><td>1.27%</td><td>1.18%</td><td>1.43%</td><td>1.01%</td><td>1.57%</td></tr>
+            <tr><td>Фев 2026</td><td>2.56%</td><td class="cell-red">3.20%</td><td class="cell-red">3.31%</td><td class="cell-red">4.34%</td><td class="cell-red">4.34%</td><td class="cell-red">3.10%</td></tr>
+            <tr><td class="cell-bold">Мар 2026</td><td class="cell-bold">2.46%</td><td class="cell-bold">1.54%</td><td class="cell-bold">1.77%</td><td class="cell-bold">1.00%</td><td class="cell-bold">0.51%</td><td class="cell-bold">1.83%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:11px;color:var(--text3);margin-top:8px">Красным выделены значения выше target группы. Mass (5-9) target = 4%/мес, Non-mass (10+) target = 1.87%/мес</p>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3 style="font-size:14px;margin-bottom:12px"><span data-tip="Product & Technology">P&T</span> vs Non-PnT: снимок март 2026</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Разрез</th><th>HC</th><th>Attrition мес.</th><th>Target мес.</th><th>YTD</th><th>Target YTD</th><th>Статус</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="cell-bold">P&T (Tech, Product, DS, Analytics)</td><td>4 373</td><td>1.10%</td><td>1.3%</td><td>20.77%</td><td>16.9%</td><td><span class="status-dot green"></span>мес <span class="status-dot red"></span>YTD</td></tr>
+            <tr><td class="cell-bold">Non-PnT</td><td>7 099</td><td>2.28%</td><td>2.7%</td><td>34.94%</td><td>35.1%</td><td><span class="status-dot green"></span>мес <span class="status-dot green"></span>YTD</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 03 REGRETTABLE ATTRITION -->
+<div class="section" id="s03">
+  <div class="section-head">
+    <span class="section-num">03</span>
+    <span class="section-title">Regrettable Attrition</span>
+    <span class="section-sub">Источник: HR Redash &middot; Период: мар 2025 - мар 2026</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Regrettable <span data-tip="Year-To-Date — с начала года">YTD</span></div>
+      <div class="kpi-value" style="color:var(--green)">9.17%</div>
+      <div class="kpi-delta good">Target ceiling: 29.7%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Regrettable (мес. март)</div>
+      <div class="kpi-value">0.53%</div>
+      <div class="kpi-sub">Target мес: 2.7%</div>
+    </div>
+    <div class="kpi kpi-warn">
+      <div class="kpi-label"><span data-tip="Year-over-Year — сравнение с аналогичным периодом прошлого года">YoY</span> &Delta;</div>
+      <div class="kpi-value" style="color:var(--yellow)">+2.31pp</div>
+      <div class="kpi-sub">vs <span data-tip="Previous Year — прошлый год">PY</span> YTD 6.86%</div>
+    </div>
+  </div>
+
+  <div class="insight-structured warning" style="background:var(--yellow-bg);border-left:3px solid var(--yellow);padding:14px 18px;border-radius:0 8px 8px 0;margin:12px 0;">
+    <div class="insight-status" style="color:var(--yellow)">&#x1F7E1; YTD в норме, но YoY тренд растёт</div>
+    <div class="insight-line"><strong>Ситуация:</strong> YTD 9.17% хорошо ниже потолка 29.7%. Однако YoY +2.31pp: regrettable attrition растёт относительно прошлого года.</div>
+    <div class="insight-line"><strong>Причина:</strong> Февральский всплеск (1.59%) — исключительный месяц (бонусный цикл). Тренд формируется с сент 2025.</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> Анализ root cause для сен-фев когорты, усиление retention для высокоперформящих сотрудников.</div>
+  </div>
+
+  <div class="card">
+    <canvas id="chart-regrettable"></canvas>
+  </div>
+
+  <button class="detail-toggle" onclick="toggleDetail(this)">Детали: таблица YTD + Great Functions + Verticals</button>
+  <div class="detail-body">
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:12px">Cumulative Regrettable Attrition (мар 2025 - мар 2026)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Месяц</th><th>Факт % (мес.)</th><th>Факт % (YTD)</th><th>Target (мес.)</th><th>Target (YTD)</th><th>PY % (мес.)</th><th>PY YTD</th><th>YTD vs PY</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Мар'25</td><td>0.66%</td><td>0.66%</td><td>2.70%</td><td>2.7%</td><td>0.42%</td><td>0.42%</td><td>+0.24pp</td></tr>
+            <tr><td>Апр'25</td><td>0.47%</td><td>1.13%</td><td>2.70%</td><td>5.4%</td><td>0.75%</td><td>1.17%</td><td>-0.04pp</td></tr>
+            <tr><td>Май'25</td><td>0.44%</td><td>1.57%</td><td>2.70%</td><td>8.1%</td><td>0.51%</td><td>1.68%</td><td>-0.11pp</td></tr>
+            <tr><td>Июн'25</td><td>0.55%</td><td>2.13%</td><td>2.70%</td><td>10.8%</td><td>0.59%</td><td>2.26%</td><td>-0.14pp</td></tr>
+            <tr><td>Июл'25</td><td>0.75%</td><td>2.88%</td><td>2.70%</td><td>13.5%</td><td>0.56%</td><td>2.83%</td><td>+0.05pp</td></tr>
+            <tr><td>Авг'25</td><td>0.68%</td><td>3.56%</td><td>2.70%</td><td>16.2%</td><td>0.61%</td><td>3.44%</td><td>+0.12pp</td></tr>
+            <tr><td>Сен'25</td><td>0.90%</td><td>4.47%</td><td>2.70%</td><td>18.9%</td><td>0.42%</td><td>3.86%</td><td>+0.61pp</td></tr>
+            <tr><td>Окт'25</td><td>0.74%</td><td>5.20%</td><td>2.70%</td><td>21.6%</td><td>0.54%</td><td>4.39%</td><td>+0.81pp</td></tr>
+            <tr><td>Ноя'25</td><td>0.73%</td><td>5.93%</td><td>2.70%</td><td>24.3%</td><td>0.59%</td><td>4.98%</td><td>+0.95pp</td></tr>
+            <tr><td>Дек'25</td><td>0.67%</td><td>6.60%</td><td>2.70%</td><td>27.0%</td><td>0.39%</td><td>5.37%</td><td>+1.23pp</td></tr>
+            <tr><td>Янв'26</td><td>0.45%</td><td>7.05%</td><td>2.70%</td><td>29.7%</td><td>0.47%</td><td>5.84%</td><td>+1.21pp</td></tr>
+            <tr><td>Фев'26</td><td class="cell-red">1.59%</td><td>8.64%</td><td>2.70%</td><td>32.4%</td><td>0.36%</td><td>6.20%</td><td class="cell-red">+2.44pp</td></tr>
+            <tr><td class="cell-bold">Мар'26</td><td class="cell-bold">0.53%</td><td class="cell-bold">9.17%</td><td>2.70%</td><td>35.1%</td><td>0.66%</td><td>6.86%</td><td class="cell-bold">+2.31pp</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="charts-row" style="margin-top:16px">
+      <div class="card">
+        <h3 style="font-size:14px;margin-bottom:12px">Regrettable Attrition YTD % по Great Functions (март 2026)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Great Function</th><th>Regrettable YTD %</th><th>Target (инд.)</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td>Product</td><td>17.6%</td><td>19.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Marketing</td><td>14.3%</td><td>18.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Corporate center</td><td>14.0%</td><td>25.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Business development</td><td>13.1%</td><td>22.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>DSA</td><td>12.3%</td><td>19.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Tech</td><td>12.2%</td><td>19.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Support</td><td>11.3%</td><td>58.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Operations</td><td>11.1%</td><td>40.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Moderation</td><td>10.4%</td><td>58.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>PR</td><td>9.8%</td><td>39.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Sales</td><td>8.2%</td><td>24.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Sales operations</td><td>6.1%</td><td>31.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Strategy</td><td>5.2%</td><td>16.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td class="cell-red">Logistics</td><td class="cell-red">4.6%</td><td class="cell-red">1.5%</td><td><span class="status-dot red"></span>выше target</td></tr>
+              <tr><td>Fintech</td><td>2.2%</td><td>36.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>M&A deals</td><td>1.1%</td><td>6.8%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:14px;margin-bottom:12px">Regrettable Attrition YTD % по Verticals (март 2026)</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Vertical</th><th>Regrettable YTD %</th><th>Target (инд.)</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td>Non-vertical</td><td>21.6%</td><td>29.9%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Services</td><td>16.1%</td><td>38.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Real Estate</td><td>13.3%</td><td>38.9%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Goods</td><td>10.0%</td><td>37.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Jobs</td><td>9.7%</td><td>32.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+              <tr><td>Auto</td><td>7.3%</td><td>32.9%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:8px">NewBiz (5352.6%) — аномалия данных (HC~0). Не отображается.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 04 ATTRITION REASONS -->
+<div class="section" id="s04">
+  <div class="section-head">
+    <span class="section-num">04</span>
+    <span class="section-title">Attrition по стажу и причинам увольнений</span>
+    <span class="section-sub">N = 3 430 чел. &middot; мар 2025 - мар 2026</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px">
+    <div class="insight-structured" style="background:var(--blue-bg);border-left:3px solid var(--blue);padding:14px 18px;border-radius:0 8px 8px 0;">
+      <div class="insight-status" style="color:var(--blue)">Ключевой паттерн</div>
+      <div class="insight-line">64.9% уходов — первые 2 года. Пик: 1-2 года (824 чел., 24%).</div>
+      <div class="insight-line"><strong>Причины в пике:</strong> Уровень дохода и Нет карьерного роста концентрируются именно здесь.</div>
+    </div>
+    <div class="insight">«Окончание стажировки» (50 чел.) — программный выход, не attrition. Не учитывается в voluntary turnover.</div>
+    <div class="insight-structured warning" style="background:var(--yellow-bg);border-left:3px solid var(--yellow);padding:14px 18px;border-radius:0 8px 8px 0;">
+      <div class="insight-status" style="color:var(--yellow)">&#x1F7E1; Проблема данных</div>
+      <div class="insight-line">N/A = 732 чел. (21.3%) — не заполнены причины.</div>
+      <div class="insight-line"><strong>Рекомендация:</strong> Снизить до &lt;10% к H2 2026 через улучшение exit-интервью.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:14px;margin-bottom:12px">Тепловая карта: причины увольнений &times; группа стажа</h3>
+    <div class="table-wrap">
+      <table class="heatmap">
+        <thead>
+          <tr><th>Причина увольнения</th><th>0-3 мес</th><th>3-6 мес</th><th>6-12 мес</th><th>1-2 года</th><th>2-3 года</th><th>3-5 лет</th><th>5+ лет</th><th>Итого</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>N/A</td><td class="heat-2">70</td><td class="heat-3">93</td><td class="heat-3">116</td><td class="heat-4">172</td><td class="heat-3">106</td><td class="heat-3">108</td><td class="heat-2">67</td><td class="cell-bold">732</td></tr>
+          <tr><td>Низкий перформанс</td><td class="heat-1">37</td><td class="heat-3">110</td><td class="heat-4">131</td><td class="heat-4">137</td><td class="heat-2">64</td><td class="heat-2">71</td><td class="heat-1">29</td><td class="cell-bold">579</td></tr>
+          <tr><td>Изменения в компании</td><td class="heat-0">12</td><td class="heat-3">94</td><td class="heat-1">45</td><td class="heat-3">112</td><td class="heat-1">42</td><td class="heat-1">39</td><td class="heat-0">13</td><td class="cell-bold">357</td></tr>
+          <tr><td>Другое</td><td class="heat-3">90</td><td class="heat-2">53</td><td class="heat-2">50</td><td class="heat-1">49</td><td class="heat-1">32</td><td class="heat-1">23</td><td class="heat-1">23</td><td class="cell-bold">320</td></tr>
+          <tr><td>Смена профессии</td><td class="heat-1">31</td><td class="heat-1">27</td><td class="heat-1">34</td><td class="heat-2">68</td><td class="heat-1">25</td><td class="heat-0">13</td><td class="heat-0">1</td><td class="cell-bold">199</td></tr>
+          <tr><td>Характер/интенсивность</td><td class="heat-3">91</td><td class="heat-1">37</td><td class="heat-1">20</td><td class="heat-1">26</td><td class="heat-0">13</td><td class="heat-0">8</td><td class="heat-0">&mdash;</td><td class="cell-bold">195</td></tr>
+          <tr><td>Уровень дохода &#9733;</td><td class="heat-0">19</td><td class="heat-0">17</td><td class="heat-1">37</td><td class="heat-2">53</td><td class="heat-1">21</td><td class="heat-0">18</td><td class="heat-0">4</td><td class="cell-bold">169</td></tr>
+          <tr><td>Характер/рутина</td><td class="heat-1">28</td><td class="heat-0">16</td><td class="heat-1">28</td><td class="heat-1">34</td><td class="heat-0">11</td><td class="heat-0">12</td><td class="heat-0">10</td><td class="cell-bold">139</td></tr>
+          <tr><td>Нет карьерного роста &#9733;</td><td class="heat-0">1</td><td class="heat-0">6</td><td class="heat-1">20</td><td class="heat-1">46</td><td class="heat-1">27</td><td class="heat-1">20</td><td class="heat-0">8</td><td class="cell-bold">128</td></tr>
+          <tr><td>Нарушение дисциплины</td><td class="heat-0">11</td><td class="heat-1">29</td><td class="heat-0">19</td><td class="heat-1">28</td><td class="heat-1">20</td><td class="heat-0">13</td><td class="heat-0">7</td><td class="cell-bold">127</td></tr>
+          <tr><td>Процессы в компании</td><td class="heat-1">24</td><td class="heat-1">27</td><td class="heat-0">19</td><td class="heat-1">24</td><td class="heat-0">14</td><td class="heat-0">12</td><td class="heat-0">1</td><td class="cell-bold">121</td></tr>
+          <tr><td>Отсутствие задач/вызовов</td><td class="heat-0">3</td><td class="heat-0">15</td><td class="heat-0">19</td><td class="heat-1">25</td><td class="heat-0">13</td><td class="heat-0">9</td><td class="heat-0">5</td><td class="cell-bold">89</td></tr>
+          <tr><td>Релокация/переезд</td><td class="heat-0">6</td><td class="heat-0">5</td><td class="heat-0">13</td><td class="heat-1">23</td><td class="heat-0">12</td><td class="heat-0">18</td><td class="heat-0">6</td><td class="cell-bold">83</td></tr>
+          <tr><td>Окончание стажировки</td><td class="heat-1">47</td><td class="heat-0">&mdash;</td><td class="heat-0">1</td><td class="heat-0">1</td><td class="heat-0">&mdash;</td><td class="heat-0">1</td><td class="heat-0">&mdash;</td><td class="cell-bold">50</td></tr>
+        </tbody>
+        <tfoot>
+          <tr style="font-weight:700;border-top:2px solid var(--border)"><td>Итого</td><td>490</td><td>554</td><td>586</td><td>824</td><td>416</td><td>383</td><td>177</td><td>3 430</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 05 OPEN VACANCIES -->
+<div class="section" id="s05">
+  <div class="section-head">
+    <span class="section-num">05</span>
+    <span class="section-title">Open Vacancies</span>
+    <span class="section-sub">Источник: HR Redash &middot; Апрель 2026</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi" style="border-left:3px solid var(--green)">
+      <div class="kpi-label">&#x1F7E2; Green</div>
+      <div class="kpi-value">171</div>
+      <div class="kpi-sub">54.1%</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--yellow)">
+      <div class="kpi-label">&#x1F7E1; Yellow</div>
+      <div class="kpi-value">59</div>
+      <div class="kpi-sub">18.7%</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--red)">
+      <div class="kpi-label">&#x1F534; Red</div>
+      <div class="kpi-value">56</div>
+      <div class="kpi-sub">17.7%</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--text3)">
+      <div class="kpi-label">&#x23F8; Hold</div>
+      <div class="kpi-value">30</div>
+      <div class="kpi-sub">9.5%</div>
+    </div>
+  </div>
+
+  <div class="insight-structured warning" style="background:var(--yellow-bg);border-left:3px solid var(--yellow);padding:14px 18px;border-radius:0 8px 8px 0;margin:12px 0;">
+    <div class="insight-status" style="color:var(--yellow)">&#x1F7E1; Marketing — системная проблема найма</div>
+    <div class="insight-line"><strong>Ситуация:</strong> <span data-tip="Product & Technology">P&T</span> — 138 вакансий (44% всех), Red только 8 (6%) — сильный показатель.</div>
+    <div class="insight-line"><strong>Проблема:</strong> Marketing — 16 Red из 30 (53%): более половины вакансий в красной зоне.</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> Аудит воронки найма в Marketing, пересмотр EVP и каналов sourcing.</div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <canvas id="chart-vacancies"></canvas>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:12px">P&T vs Non-PnT</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Группа</th><th style="color:var(--green)">&#x1F7E2; Green</th><th style="color:var(--yellow)">&#x1F7E1; Yellow</th><th style="color:var(--red)">&#x1F534; Red</th><th>&#x23F8; Hold</th><th>Итого</th><th>Red %</th></tr></thead>
+          <tbody>
+            <tr><td class="cell-bold">P&T (Tech, Product, DS, Analytics)</td><td>92</td><td>20</td><td>8</td><td>18</td><td class="cell-bold">138</td><td style="color:var(--green);font-weight:600">6%</td></tr>
+            <tr><td class="cell-bold">Non-PnT (остальные функции)</td><td>79</td><td>39</td><td>48</td><td>12</td><td class="cell-bold">178</td><td style="color:var(--red);font-weight:600">27%</td></tr>
+            <tr style="font-weight:700;border-top:2px solid var(--border)"><td>ИТОГО</td><td>171</td><td>59</td><td>56</td><td>30</td><td>316</td><td>18%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="insight" style="margin-top:12px">P&T: 44% всех вакансий, но Red всего 6%. Non-PnT: Red 27% — в 4.5 раза хуже. Основной драйвер — Marketing (16 из 48 Red).</div>
+    </div>
+  </div>
+
+  <button class="detail-toggle" onclick="toggleDetail(this)">Детализация по Great Functions</button>
+  <div class="detail-body">
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Функция</th><th>Тип</th><th style="color:var(--green)">&#x1F7E2;</th><th style="color:var(--yellow)">&#x1F7E1;</th><th style="color:var(--red)">&#x1F534;</th><th>&#x23F8;</th><th>Итого</th></tr></thead>
+          <tbody>
+            <tr><td class="cell-bold">P&T</td><td>PnT</td><td>92</td><td>20</td><td>8</td><td>18</td><td class="cell-bold">138</td></tr>
+            <tr><td>Sales</td><td>Non-PnT</td><td>26</td><td>9</td><td>10</td><td>2</td><td class="cell-bold">47</td></tr>
+            <tr><td>Corporate center</td><td>Non-PnT</td><td>18</td><td>13</td><td>5</td><td>1</td><td class="cell-bold">37</td></tr>
+            <tr><td class="cell-red">Marketing</td><td>Non-PnT</td><td>10</td><td>2</td><td class="cell-red">16</td><td>2</td><td class="cell-bold">30</td></tr>
+            <tr><td>Business development</td><td>Non-PnT</td><td>7</td><td>2</td><td>6</td><td>5</td><td class="cell-bold">20</td></tr>
+            <tr><td>Operations</td><td>Non-PnT</td><td>8</td><td>5</td><td>3</td><td>1</td><td class="cell-bold">17</td></tr>
+            <tr><td>PR</td><td>Non-PnT</td><td>4</td><td>2</td><td>1</td><td>1</td><td class="cell-bold">8</td></tr>
+            <tr><td>Support</td><td>Non-PnT</td><td>1</td><td>3</td><td>3</td><td>0</td><td class="cell-bold">7</td></tr>
+            <tr><td>M&A deals</td><td>Non-PnT</td><td>0</td><td>2</td><td>2</td><td>0</td><td class="cell-bold">4</td></tr>
+            <tr><td>Н/О</td><td>Non-PnT</td><td>3</td><td>1</td><td>0</td><td>0</td><td class="cell-bold">4</td></tr>
+            <tr><td>Strategy</td><td>Non-PnT</td><td>1</td><td>0</td><td>0</td><td>0</td><td class="cell-bold">1</td></tr>
+            <tr><td>Sales operations</td><td>Non-PnT</td><td>1</td><td>0</td><td>0</td><td>0</td><td class="cell-bold">1</td></tr>
+            <tr style="font-weight:700;border-top:2px solid var(--border)"><td>ИТОГО</td><td></td><td>171</td><td>59</td><td>56</td><td>30</td><td>316</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== БЛОК 2: FINANCIAL & ORG EFFICACY ===================== -->
+<div class="block-title">Блок 2 &mdash; Financial & Organizational Efficacy</div>
+
+<!-- 06 STAFF COST / REVENUE -->
+<div class="section" id="s06">
+  <div class="section-head">
+    <span class="section-num">06</span>
+    <span class="section-title">Staff Cost / Revenue (<span data-tip="Staff Cost vs Revenue — доля ФОТ в выручке">SCVR</span>)</span>
+    <span class="section-sub">Источник: Finance Dashboard</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Total Staff Costs / Rev (март)</div>
+      <div class="kpi-value">24.01%</div>
+      <div class="kpi-delta good">&#x25BC; -3.33pp vs план (27.34%)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label"><span data-tip="Salary + Bonus + ESN — прямые расходы на персонал">SBE</span> / Rev (март)</div>
+      <div class="kpi-value">19.80%</div>
+      <div class="kpi-delta good">&#x25BC; -2.62pp vs план (22.42%)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total <span data-tip="Year-To-Date — накопленное с начала года">YTD</span></div>
+      <div class="kpi-value">24.34%</div>
+      <div class="kpi-sub">Plan YTD: 25.17%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label"><span data-tip="Salary + Bonus + ESN">SBE</span> YTD</div>
+      <div class="kpi-value">20.57%</div>
+      <div class="kpi-sub">Plan YTD: 20.92%</div>
+    </div>
+  </div>
+
+  <div class="insight-structured" style="background:var(--green-bg);border-left:3px solid var(--green);padding:14px 18px;border-radius:0 8px 8px 0;margin:12px 0;">
+    <div class="insight-status" style="color:var(--green)">&#x1F7E2; Обе линии ниже плана</div>
+    <div class="insight-line"><strong>Ситуация:</strong> Total -3.33pp, <span data-tip="Salary + Bonus + ESN">SBE</span> -2.62pp vs план. SBE <span data-tip="Year-over-Year">YoY</span> = -0.33pp в марте — первый разворот: рост выручки опережает рост ФОТ.</div>
+    <div class="insight-line"><strong>Причина:</strong> Январский пик (29.45%) — структурный (бонусный цикл + низкая январская выручка), не аномалия.</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> Сохранять текущий тренд, мониторить SBE при росте HC в Q2.</div>
+  </div>
+
+  <div class="card">
+    <canvas id="chart-scvr" height="280"></canvas>
+  </div>
+
+  <button class="detail-toggle" onclick="toggleDetail(this)">Детальная таблица SCVR по месяцам</button>
+  <div class="detail-body">
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Месяц</th><th>Total факт%</th><th>vs план</th><th>SBE факт%</th><th>vs план</th><th>Total YTD</th><th>SBE YTD</th><th>PY Total</th><th>Бюджет</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Мар 2025</td><td>23.75%</td><td>-1.66</td><td>20.13%</td><td>-0.42</td><td>23.75%</td><td>20.13%</td><td>19.86%</td><td>CY25_Bgt</td></tr>
+            <tr><td>Апр 2025</td><td>23.40%</td><td>+0.48</td><td>20.44%</td><td>+0.66</td><td>23.57%</td><td>20.29%</td><td>19.60%</td><td><span data-tip="Business Review Forecast — периодический пересмотр бюджета">BRF</span>4</td></tr>
+            <tr><td>Май 2025</td><td>23.98%</td><td>+1.49</td><td>20.28%</td><td>+0.71</td><td>23.71%</td><td>20.29%</td><td>19.01%</td><td>BRF4</td></tr>
+            <tr><td>Июн 2025</td><td>23.72%</td><td>+1.08</td><td>19.87%</td><td>+0.42</td><td>23.71%</td><td>20.18%</td><td>20.58%</td><td>BRF4</td></tr>
+            <tr><td>Июл 2025</td><td>21.91%</td><td>-1.07</td><td>19.65%</td><td>-0.12</td><td>23.33%</td><td>20.07%</td><td>18.72%</td><td>BRF7</td></tr>
+            <tr><td>Авг 2025</td><td>22.02%</td><td>-0.43</td><td>19.11%</td><td>-0.20</td><td>23.10%</td><td>19.90%</td><td>19.27%</td><td>BRF7</td></tr>
+            <tr><td>Сен 2025</td><td>23.53%</td><td>-1.52</td><td>20.00%</td><td>-0.91</td><td>23.17%</td><td>19.91%</td><td>20.39%</td><td>BRF7</td></tr>
+            <tr><td>Окт 2025</td><td>22.56%</td><td>-1.05</td><td>19.50%</td><td>-0.39</td><td>23.08%</td><td>19.86%</td><td>20.57%</td><td>BRF7</td></tr>
+            <tr><td>Ноя 2025</td><td>24.59%</td><td>-1.31</td><td>20.34%</td><td>-0.48</td><td>23.25%</td><td>19.91%</td><td>21.88%</td><td>BRF11</td></tr>
+            <tr><td>Дек 2025</td><td>26.02%</td><td>-1.22</td><td>21.27%</td><td>-0.27</td><td>23.53%</td><td>20.05%</td><td>22.79%</td><td>BRF11</td></tr>
+            <tr><td>Янв 2026</td><td class="cell-red">29.45%</td><td>0.00</td><td>24.02%</td><td>+0.21</td><td>24.01%</td><td>20.37%</td><td>25.97%</td><td>Budget</td></tr>
+            <tr><td>Фев 2026</td><td>28.88%</td><td>-1.50</td><td>23.96%</td><td>-0.59</td><td>24.37%</td><td>20.64%</td><td>25.87%</td><td>Budget</td></tr>
+            <tr><td class="cell-bold">Мар 2026</td><td class="cell-bold">24.01%</td><td class="cell-bold">-3.33</td><td class="cell-bold">19.80%</td><td class="cell-bold">-2.62</td><td class="cell-bold">24.34%</td><td class="cell-bold">20.57%</td><td>23.75%</td><td>Budget</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 07 VACATION -->
+<div class="section" id="s07">
+  <div class="section-head">
+    <span class="section-num">07</span>
+    <span class="section-title">Vacation Days</span>
+    <span class="section-sub">Источник: Big5/1C &middot; Снимок март 2026</span>
+  </div>
+
+  <div class="insight-structured danger" style="background:var(--red-bg);border-left:3px solid var(--red);padding:14px 18px;border-radius:0 8px 8px 0;margin:0 0 16px 0;">
+    <div class="insight-status" style="color:var(--red)">&#x1F534; Fintech и M&A — критический отпускной долг</div>
+    <div class="insight-line"><strong>Ситуация:</strong> Fintech Plan+Fact 31.9%, M&A deals 17.7% — крайне низкое планирование отпусков.</div>
+    <div class="insight-line"><strong>Риск:</strong> P&L-риск (начисление резервов) и нарушение ТК РФ (ст. 115: обязательные 28 дней/год).</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> HRBP представляют план мер. Еженедельный мониторинг до выхода на 80%+.</div>
+  </div>
+
+  <div class="card">
+    <canvas id="chart-vacation" height="300"></canvas>
+  </div>
+
+  <button class="detail-toggle" onclick="toggleDetail(this)">Детальная таблица по Great Functions</button>
+  <div class="detail-body">
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:12px">Great Functions — % запланированных и использованных отпусков</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Great Function</th><th>Факт % (YTD исп.)</th><th>Plan+Fact %</th><th>Факт на дату %</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr class="cell-red"><td>M&A deals</td><td>8.5%</td><td style="color:var(--red);font-weight:600">17.7%</td><td>28.6%</td><td><span class="status-dot red"></span>КРИТИЧНО</td></tr>
+            <tr class="cell-red"><td>Fintech</td><td>8.5%</td><td style="color:var(--red);font-weight:600">31.9%</td><td>32.7%</td><td><span class="status-dot red"></span>КРИТИЧНО</td></tr>
+            <tr><td>DSA</td><td>15.4%</td><td style="color:var(--yellow)">86.9%</td><td>54.5%</td><td><span class="status-dot yellow"></span>мониторинг</td></tr>
+            <tr><td>Sales operations</td><td>13.4%</td><td style="color:var(--yellow)">88.7%</td><td>45.8%</td><td><span class="status-dot yellow"></span>мониторинг</td></tr>
+            <tr><td>Corporate center</td><td>15.1%</td><td>90.9%</td><td>50.8%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>Tech</td><td>15.8%</td><td>93.6%</td><td>53.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>PR</td><td>18.2%</td><td>93.9%</td><td>62.5%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>Business development</td><td>14.0%</td><td>95.6%</td><td>47.8%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>Operations</td><td>16.3%</td><td>95.9%</td><td>56.0%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>Product</td><td>15.7%</td><td>98.1%</td><td>55.8%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>Marketing</td><td>15.8%</td><td>98.3%</td><td>53.1%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>Sales</td><td>17.1%</td><td>99.0%</td><td>58.3%</td><td><span class="status-dot green"></span>в норме</td></tr>
+            <tr><td>Logistics</td><td>19.6%</td><td>100.4%</td><td>64.8%</td><td><span class="status-dot green"></span>&#x2705;</td></tr>
+            <tr><td>Support</td><td>19.8%</td><td>100.5%</td><td>65.8%</td><td><span class="status-dot green"></span>&#x2705;</td></tr>
+            <tr><td>Strategy</td><td>11.2%</td><td>103.4%</td><td>37.2%</td><td><span class="status-dot green"></span>&#x2705;</td></tr>
+            <tr><td>Moderation</td><td>20.3%</td><td>103.6%</td><td>66.7%</td><td><span class="status-dot green"></span>&#x2705;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 08 SPAN OF CONTROL -->
+<div class="section" id="s08">
+  <div class="section-head">
+    <span class="section-num">08</span>
+    <span class="section-title"><span data-tip="Span of Control — кол-во прямых подчинённых на менеджера. Нормы дифференцированы: MoM (4-9), FLM (3-9), спецправила для Support, Operations, Sales и др.">Span of Control</span></span>
+    <span class="section-sub">Источник: OrgDesign Metrics 2026-04-15</span>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-label">Всего менеджеров</div>
+      <div class="kpi-value">1 703</div>
+    </div>
+    <div class="kpi kpi-alert">
+      <div class="kpi-label">&#x1F534; Red (ниже нормы)</div>
+      <div class="kpi-value">359 <span style="font-size:14px;color:var(--text2)">(21.1%)</span></div>
+      <div class="kpi-sub">MoM &le;3 / FLM &le;2 / Support&Mod &le;11 / Ops &le;8 / Sales &le;5</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--green)">
+      <div class="kpi-label">&#x1F7E2; Green (норма)</div>
+      <div class="kpi-value">1 173 <span style="font-size:14px;color:var(--text2)">(68.9%)</span></div>
+      <div class="kpi-sub">MoM 4-9 / FLM 3-9 / Support&Mod 12-15 / Ops 9-15 / Sales 6-15</div>
+    </div>
+    <div class="kpi" style="border-left:3px solid var(--yellow)">
+      <div class="kpi-label">&#x1F7E1; Yellow (перегрузка)</div>
+      <div class="kpi-value">171 <span style="font-size:14px;color:var(--text2)">(10.0%)</span></div>
+      <div class="kpi-sub">MoM &ge;10 / FLM &ge;10 / Support&Mod &ge;16 / Ops &ge;16 / Sales &ge;16</div>
+    </div>
+  </div>
+
+  <div class="insight-structured warning" style="background:var(--yellow-bg);border-left:3px solid var(--yellow);padding:14px 18px;border-radius:0 8px 8px 0;margin:12px 0;">
+    <div class="insight-status" style="color:var(--yellow)">&#x1F7E1; 4 функции с критической фрагментацией</div>
+    <div class="insight-line"><strong>Ситуация:</strong> Strategy (71% Red), Fintech (67%), PR (50%), Business dev (53%) — более половины менеджеров ниже нормы по дифференцированным правилам.</div>
+    <div class="insight-line"><strong>Причина:</strong> Исторически сложившаяся структура, отсутствие org-design ревью.</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> OrgDesign ревью для top-4 Red-функций, приведение SoC к нормам по типу роли к Q4 2026.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <canvas id="chart-soc" height="220"></canvas>
+  </div>
+
+  <button class="detail-toggle" onclick="toggleDetail(this)">Детали: таблицы по Great Functions и Verticals</button>
+  <div class="detail-body">
+    <div class="charts-row">
+      <div class="card">
+        <h3 style="font-size:14px;margin-bottom:12px">По Great Functions</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Great Function</th><th>HC</th><th>Менедж.</th><th>Avg SoC</th><th>&#x1F534; Red</th><th>Red %</th><th>&#x1F7E2; Green %</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td class="cell-red">Strategy</td><td>53</td><td>17</td><td class="cell-red">2.4</td><td>12</td><td class="cell-red">71%</td><td>29%</td><td><span class="status-dot red"></span>Фрагментация</td></tr>
+              <tr><td class="cell-red">Fintech</td><td>13</td><td>3</td><td class="cell-red">3.0</td><td>2</td><td class="cell-red">67%</td><td>33%</td><td><span class="status-dot red"></span>Фрагментация</td></tr>
+              <tr><td class="cell-red">PR</td><td>83</td><td>22</td><td class="cell-red">3.4</td><td>11</td><td class="cell-red">50%</td><td>50%</td><td><span class="status-dot red"></span>Фрагментация</td></tr>
+              <tr><td class="cell-red">Business development</td><td>216</td><td>73</td><td class="cell-red">3.5</td><td>39</td><td class="cell-red">53%</td><td>44%</td><td><span class="status-dot red"></span>Фрагментация</td></tr>
+              <tr><td>Marketing</td><td>284</td><td>69</td><td>3.6</td><td>27</td><td style="color:var(--yellow)">39%</td><td>61%</td><td><span class="status-dot yellow"></span>Мониторинг</td></tr>
+              <tr><td>M&A deals</td><td>191</td><td>42</td><td>4.4</td><td>15</td><td style="color:var(--yellow)">36%</td><td>60%</td><td><span class="status-dot yellow"></span>Мониторинг</td></tr>
+              <tr><td>Corporate center</td><td>882</td><td>193</td><td>4.6</td><td>70</td><td style="color:var(--yellow)">36%</td><td>55%</td><td><span class="status-dot yellow"></span>Мониторинг</td></tr>
+              <tr><td>Operations</td><td>558</td><td>57</td><td>9.4</td><td>21</td><td style="color:var(--yellow)">37%</td><td>51%</td><td><span class="status-dot yellow"></span>Мониторинг</td></tr>
+              <tr><td>Moderation</td><td>556</td><td>48</td><td>11.5</td><td>14</td><td>29%</td><td>40%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Sales</td><td>1 054</td><td>147</td><td>7.0</td><td>38</td><td>26%</td><td>71%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Logistics</td><td>92</td><td>22</td><td>4.2</td><td>5</td><td>23%</td><td>73%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Product</td><td>714</td><td>134</td><td>5.1</td><td>19</td><td>14%</td><td>80%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Sales operations</td><td>58</td><td>9</td><td>5.7</td><td>1</td><td>11%</td><td>89%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Support</td><td>2 875</td><td>232</td><td>12.4</td><td>26</td><td>11%</td><td>62%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>DSA</td><td>953</td><td>167</td><td>5.3</td><td>14</td><td>8%</td><td>84%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Tech</td><td>2 866</td><td>468</td><td>6.0</td><td>45</td><td>10%</td><td>82%</td><td><span class="status-dot green"></span>В норме</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:14px;margin-bottom:12px">По Verticals</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Vertical</th><th>HC</th><th>Менедж.</th><th>Avg SoC</th><th>Red %</th><th>Green %</th><th>Статус</th></tr></thead>
+            <tbody>
+              <tr><td>Non-vertical</td><td>5 395</td><td>893</td><td>6.1</td><td>19%</td><td>70%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Goods</td><td>1 874</td><td>250</td><td>7.2</td><td>20%</td><td>71%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Real Estate</td><td>1 743</td><td>218</td><td>7.7</td><td>23%</td><td>64%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Auto</td><td>1 117</td><td>161</td><td>6.7</td><td>21%</td><td>70%</td><td><span class="status-dot green"></span>В норме</td></tr>
+              <tr><td>Jobs</td><td>642</td><td>96</td><td>6.2</td><td style="color:var(--yellow)">35%</td><td>60%</td><td><span class="status-dot yellow"></span>Мониторинг</td></tr>
+              <tr><td>Services</td><td>677</td><td>85</td><td>7.3</td><td>21%</td><td>71%</td><td><span class="status-dot green"></span>В норме</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== БЛОК 3: STRATEGIC BETS ===================== -->
+<div class="block-title">Блок 3 &mdash; Strategic Bets</div>
+
+<!-- 09 HR PER STAFF -->
+<div class="section" id="s09">
+  <div class="section-head">
+    <span class="section-num">09</span>
+    <span class="section-title">HR per Staff Ratio</span>
+    <span class="section-sub">Данные февраль 2026 (IBM)</span>
+  </div>
+
+  <div class="insight-structured" style="background:var(--blue-bg);border-left:3px solid var(--blue);padding:14px 18px;border-radius:0 8px 8px 0;margin:0 0 16px 0;">
+    <div class="insight-status" style="color:var(--blue)">Путь к target 3.0%</div>
+    <div class="insight-line"><strong>Ситуация:</strong> Total 3.77%, без Recruitment уже 2.56% (ниже target).</div>
+    <div class="insight-line"><strong>Рекомендация:</strong> Оптимизация рекрутмента и graduate-программ — основной рычаг снижения к 3.0% до 2027.</div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Вариант расчёта</th><th>Значение</th><th>Target</th><th>Что исключено</th><th>Зачем нужен вариант</th></tr></thead>
+        <tbody>
+          <tr><td class="cell-bold">HR per Staff — Total</td><td class="cell-bold">3.77%</td><td>3.0% к 2027</td><td>&mdash;</td><td class="cell-wrap">Базовая метрика для внешнего бенчмарка</td></tr>
+          <tr><td>HR per Staff — без Recruitment</td><td style="color:var(--green);font-weight:600">2.56%</td><td>3.0% к 2027</td><td class="cell-wrap">Рекрутёры Tech+Non-tech</td><td class="cell-wrap">Стабильная база для управленческих решений</td></tr>
+          <tr><td>HR per Staff — без Graduate</td><td>3.49%</td><td>3.0% к 2027</td><td class="cell-wrap">Graduate Recruitment</td><td class="cell-wrap">Очищенная для сравнения с year-round operations</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 10 STRATEGIC BETS METRICS -->
+<div class="section" id="s10">
+  <div class="section-head">
+    <span class="section-num">10</span>
+    <span class="section-title">Стратегические ставки: ключевые метрики</span>
+    <span class="section-sub">Данные апрель 2026</span>
+  </div>
+
+  <div class="gauges-row">
+    <div class="gauge-card">
+      <div class="gauge-label"><span data-tip="Managerial Internal Hiring — доля внутренних назначений на менеджерские позиции">MIH</span> %</div>
+      <div class="gauge-value" style="color:var(--yellow)">55%</div>
+      <div class="gauge-target">Target: 65% (дек 2026)</div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:84.6%;background:var(--yellow)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px"><span data-tip="Talent Development System — система развития талантов">TDS</span> &middot; &Delta;+10pp</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label"><span data-tip="Next Up List Utilization — использование списка преемников при назначениях">Next Up</span> Utilization %</div>
+      <div class="gauge-value" style="color:var(--red)">35%</div>
+      <div class="gauge-target">Target: 75% (дек 2026)</div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:46.7%;background:var(--red)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">TDS &middot; &Delta;+40pp &middot; Нужны квартальные чекпоинты</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label">HR <span data-tip="Индекс автоматизации HR-процессов">Automation</span> Index</div>
+      <div class="gauge-value" style="color:var(--yellow)">1.60</div>
+      <div class="gauge-target">Target: 1.69 (дек 2026)</div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:94.7%;background:var(--yellow)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">HR-Tech &middot; &Delta;+0.09</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label"><span data-tip="i0/i1 метрики — ключевые HR-метрики уровня 0 и 1 в системе HR-аналитики">i0/i1</span> Available Metrics %</div>
+      <div class="gauge-value" style="color:var(--red)">43%</div>
+      <div class="gauge-target">25 из 58 &middot; Target: 100%</div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:43%;background:var(--red)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Analytics &middot; &Delta;+33 метрики</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label">Data Accuracy (ошибки)</div>
+      <div class="gauge-value" style="color:var(--red)">85.78%</div>
+      <div class="gauge-target">Target: 0% ошибок</div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:85.78%;background:var(--red)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Analytics &middot; Вкл. массовые ошибки рег./тел.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APPENDIX -->
+<div class="block-title collapsible-header" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">Appendix &mdash; Метрики не включённые в SteerCo</div>
+<div class="collapsible-body">
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Метрика</th><th>Текущий факт</th><th>Причина исключения</th></tr></thead>
+        <tbody>
+          <tr><td>Offer Acceptance Rate %</td><td style="color:var(--green)">92.9% (target 75%)</td><td class="cell-wrap">Метрика зелёная (+18pp выше target). Триггер: падение ниже 80%.</td></tr>
+          <tr><td>MAU HR Redash / HR M42</td><td>Данные есть</td><td class="cell-wrap">Продуктовая метрика adoption. CPeO не принимает решений на её основе.</td></tr>
+          <tr><td>Revenue per Employee (<span data-tip="Revenue Per Employee — выручка на сотрудника">RPE</span>)</td><td style="color:var(--text3)">Нет данных</td><td class="cell-wrap">Данные в HRDWH отсутствуют. Методология не согласована с Finance. Беклог Q3 2026.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0})" title="Наверх">&#x2191;</button>
+
+<script>
+// ===== CHART.JS DEFAULTS =====
+Chart.register(ChartDataLabels);
+Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#6b7280';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+// Default datalabels off — enable per dataset
+Chart.defaults.plugins.datalabels.display = false;
+
+const MONTHS = ['Апр\'25','Май\'25','Июн\'25','Июл\'25','Авг\'25','Сен\'25','Окт\'25','Ноя\'25','Дек\'25','Янв\'26','Фев\'26','Мар\'26'];
+const MONTHS13 = ['Мар\'25','Апр\'25','Май\'25','Июн\'25','Июл\'25','Авг\'25','Сен\'25','Окт\'25','Ноя\'25','Дек\'25','Янв\'26','Фев\'26','Мар\'26'];
+
+// Reusable datalabels config for line charts (%)
+const DL_PCT = { display: true, anchor: 'end', align: 'top', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6 };
+const DL_PCT_BOT = { display: true, anchor: 'start', align: 'bottom', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6 };
+const DL_INT = { display: true, anchor: 'end', align: 'top', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6, formatter: v => v.toLocaleString('ru-RU') };
+const DL_NONE = { display: false };
+const DL_BAR = { display: true, anchor: 'end', align: 'end', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 4, formatter: v => v + '%' };
+
+// ===== DETAIL TOGGLE =====
+function toggleDetail(btn) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+
+// ===== 01: HEADCOUNT CHART =====
+new Chart(document.getElementById('chart-hc'), {
+  type: 'bar',
+  data: {
+    labels: MONTHS,
+    datasets: [
+      { label: 'HC факт', data: [11381,11527,11697,11822,11671,11857,11756,11661,11788,11628,11447,11468], backgroundColor: '#3b82f6', borderRadius: 4, datalabels: DL_INT },
+      { label: 'План', data: [11622,11966,12177,12052,12227,12298,12357,12018,11977,11912,11995,12115], backgroundColor: '#e2e5f0', borderRadius: 4, datalabels: DL_NONE }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Headcount: Факт vs План', font: { size: 14, weight: 600 } } },
+    scales: { y: { beginAtZero: false, min: 10500, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
+  }
+});
+
+// ===== 01: COMPLETENESS CHART =====
+new Chart(document.getElementById('chart-completeness'), {
+  type: 'line',
+  data: {
+    labels: MONTHS,
+    datasets: [
+      { label: 'Укомплектованность %', data: [97.92,96.33,96.06,98.10,95.45,96.42,95.14,97.03,98.43,97.61,95.43,94.66], borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', fill: true, tension: 0.3, pointRadius: 4, datalabels: DL_PCT },
+      { label: 'Target 95%', data: Array(12).fill(95), borderColor: '#ef4444', borderDash: [6,4], pointRadius: 0, borderWidth: 2, datalabels: DL_NONE }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Completeness %', font: { size: 14, weight: 600 } } },
+    scales: { y: { min: 93, max: 100, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
+  }
+});
+
+// ===== 02: ATTRITION ALL =====
+new Chart(document.getElementById('chart-attrition-all'), {
+  type: 'line',
+  data: {
+    labels: MONTHS13,
+    datasets: [
+      { label: 'All Avito факт', data: [2.33,2.25,1.92,1.85,2.42,2.67,2.64,2.61,2.19,2.31,1.57,3.10,1.83], borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, datalabels: DL_PCT },
+      { label: 'Прошлый год', data: [2.04,2.31,2.01,2.26,2.46,2.38,2.30,2.65,2.56,2.18,2.00,2.06,2.33], borderColor: '#9ca3af', borderDash: [4,4], tension: 0.3, pointRadius: 2, datalabels: DL_NONE },
+      { label: 'Target 2.7%', data: Array(13).fill(2.7), borderColor: '#ef4444', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Attrition % (месяц) — All Avito', font: { size: 14, weight: 600 } } },
+    scales: { y: { min: 0, max: 5, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
+  }
+});
+
+// ===== 02: ATTRITION TECH/NON-TECH =====
+new Chart(document.getElementById('chart-attrition-tech'), {
+  type: 'line',
+  data: {
+    labels: MONTHS13,
+    datasets: [
+      { label: 'P&T (Tech, Product, DS)', data: [1.56,1.23,1.06,0.84,1.55,1.54,2.23,1.94,1.21,1.44,1.02,4.05,1.10], borderColor: '#8b5cf6', tension: 0.3, pointRadius: 4, datalabels: DL_PCT },
+      { label: 'Non-PnT (остальные)', data: [2.77,2.85,2.43,2.45,2.91,3.34,2.87,2.99,2.77,2.83,1.90,2.53,2.28], borderColor: '#f59e0b', tension: 0.3, pointRadius: 4, datalabels: DL_PCT_BOT },
+      { label: 'Target P&T 1.3%', data: Array(13).fill(1.3), borderColor: '#8b5cf6', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE },
+      { label: 'Target Non-PnT 2.7%', data: Array(13).fill(2.7), borderColor: '#f59e0b', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Attrition % — P&T vs Non-PnT', font: { size: 14, weight: 600 } } },
+    scales: { y: { min: 0, max: 5, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
+  }
+});
+
+// ===== 03: REGRETTABLE TREND =====
+new Chart(document.getElementById('chart-regrettable'), {
+  type: 'line',
+  data: {
+    labels: MONTHS13,
+    datasets: [
+      { label: 'Regrettable нарастающий YTD %', data: [0.66,1.13,1.57,2.13,2.88,3.56,4.47,5.20,5.93,6.60,7.05,8.64,9.17], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.06)', fill: true, tension: 0.3, pointRadius: 4, datalabels: DL_PCT },
+      { label: 'Прошлый год (YTD)', data: [0.42,1.17,1.68,2.26,2.83,3.44,3.86,4.39,4.98,5.37,5.84,6.20,6.86], borderColor: '#9ca3af', borderDash: [4,4], tension: 0.3, pointRadius: 2, datalabels: DL_NONE },
+      { label: 'Потолок (target)', data: [2.7,5.4,8.1,10.8,13.5,16.2,18.9,21.6,24.3,27.0,29.7,32.4,35.1], borderColor: '#10b981', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Regrettable Attrition — нарастающий YTD %', font: { size: 14, weight: 600 } } },
+    scales: { y: { min: 0, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
+  }
+});
+
+// ===== 05: VACANCIES P&T vs Non-PnT =====
+new Chart(document.getElementById('chart-vacancies'), {
+  type: 'bar',
+  data: {
+    labels: ['P&T (138)', 'Non-PnT (178)'],
+    datasets: [
+      { label: 'Green (в срок)', data: [92, 79], backgroundColor: '#10b981', borderRadius: 4, datalabels: { display: true, color: '#fff', font: { size: 12, weight: 700 } } },
+      { label: 'Yellow (риск)', data: [20, 39], backgroundColor: '#f59e0b', borderRadius: 4, datalabels: { display: true, color: '#fff', font: { size: 12, weight: 700 } } },
+      { label: 'Red (просрочены)', data: [8, 48], backgroundColor: '#ef4444', borderRadius: 4, datalabels: { display: true, color: '#fff', font: { size: 12, weight: 700 } } },
+      { label: 'Hold (приостановлены)', data: [18, 12], backgroundColor: '#9ca3af', borderRadius: 4, datalabels: { display: true, color: '#fff', font: { size: 12, weight: 700 } } }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' },
+      title: { display: true, text: 'Открытые вакансии: P&T vs Non-PnT (всего 316)', font: { size: 14, weight: 600 } }
+    },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: { stacked: true, grid: { color: '#f1f3f9' } }
+    }
+  }
+});
+
+// ===== 06: STAFF COST / REVENUE =====
+new Chart(document.getElementById('chart-scvr'), {
+  type: 'line',
+  data: {
+    labels: MONTHS13,
+    datasets: [
+      { label: 'Все расходы на персонал / Выручка %', data: [23.75,23.40,23.98,23.72,21.91,22.02,23.53,22.56,24.59,26.02,29.45,28.88,24.01], borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, borderWidth: 2, datalabels: DL_PCT },
+      { label: 'Зарплата+Бонус+ЕСН / Выручка %', data: [20.13,20.44,20.28,19.87,19.65,19.11,20.00,19.50,20.34,21.27,24.02,23.96,19.80], borderColor: '#8b5cf6', tension: 0.3, pointRadius: 4, borderWidth: 2, datalabels: DL_PCT_BOT },
+      { label: 'Прошлый год (Total)', data: [19.86,19.60,19.01,20.58,18.72,19.27,20.39,20.57,21.88,22.79,25.97,25.87,23.75], borderColor: '#9ca3af', borderDash: [4,4], tension: 0.3, pointRadius: 2, datalabels: DL_NONE },
+      { label: 'План (Total YTD)', data: [25.41,24.14,23.57,23.32,23.25,23.11,23.40,23.43,23.71,24.06,24.51,24.97,25.17], borderColor: '#ef4444', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' }, title: { display: true, text: 'Расходы на персонал / Выручка %', font: { size: 14, weight: 600 } } },
+    scales: { y: { min: 17, max: 32, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
+  }
+});
+
+// ===== 07: VACATION =====
+const vacFunctions = ['M&A deals','Fintech','DSA','Sales ops','Corp center','Tech','PR','Biz dev','Operations','Product','Marketing','Sales','Logistics','Support','Strategy','Moderation'];
+const vacPlanFact = [17.7,31.9,86.9,88.7,90.9,93.6,93.9,95.6,95.9,98.1,98.3,99.0,100.4,100.5,103.4,103.6];
+new Chart(document.getElementById('chart-vacation'), {
+  type: 'bar',
+  data: {
+    labels: vacFunctions,
+    datasets: [{
+      label: 'Запланировано + Использовано %',
+      data: vacPlanFact,
+      backgroundColor: vacPlanFact.map(v => v < 50 ? '#ef4444' : v < 90 ? '#f59e0b' : '#10b981'),
+      borderRadius: 4,
+      datalabels: DL_BAR
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false }, title: { display: true, text: 'Отпуска: Plan+Fact % по функциям', font: { size: 14, weight: 600 } } },
+    scales: { x: { min: 0, max: 120, grid: { color: '#f1f3f9' } }, y: { grid: { display: false } } }
+  }
+});
+
+// ===== 08: SOC =====
+const socLabels = ['Strategy','Fintech','PR','Biz dev','Marketing','M&A','Corp ctr','Operations','Moderation','Sales','Logistics','Product','Sales ops','Support','DSA','Tech'];
+const socRed = [71,67,50,53,39,36,36,37,29,26,23,14,11,11,8,10];
+new Chart(document.getElementById('chart-soc'), {
+  type: 'bar',
+  data: {
+    labels: socLabels,
+    datasets: [{
+      label: 'Red %',
+      data: socRed,
+      backgroundColor: socRed.map(v => v >= 50 ? '#ef4444' : v >= 30 ? '#f59e0b' : '#10b981'),
+      borderRadius: 4,
+      datalabels: DL_BAR
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false }, title: { display: true, text: 'SoC', font: { size: 14, weight: 600 } } },
+    scales: { x: { min: 0, max: 80, grid: { color: '#f1f3f9' } }, y: { grid: { display: false } } }
+  }
+});
+
+// ===== NAV ACTIVE STATE =====
+const sections = document.querySelectorAll('.section');
+const navLinks = document.querySelectorAll('.nav a');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-100px 0px -60% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// ===== BACK TO TOP =====
+const backBtn = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+  backBtn.classList.toggle('visible', window.scrollY > 400);
+}, { passive: true });
+</script>
+</body>
+</html>
