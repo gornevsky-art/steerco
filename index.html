@@ -165,6 +165,7 @@ th {
   position: sticky;
   top: 0;
   background: var(--bg-card);
+  white-space: nowrap;
 }
 td {
   padding: 7px 10px;
@@ -682,8 +683,8 @@ td:first-child { white-space: normal; }
   </div>
 
   <div class="charts-row">
-    <div class="card"><canvas id="chart-attrition-all"></canvas></div>
-    <div class="card"><canvas id="chart-attrition-tech"></canvas></div>
+    <div class="card"><canvas id="chart-attrition-all" height="180"></canvas></div>
+    <div class="card"><canvas id="chart-attrition-tech" height="180"></canvas></div>
   </div>
 
   <button class="detail-toggle" onclick="toggleDetail(this)">Детали: таблица по грейдам + P&T vs Non-PnT</button>
@@ -766,7 +767,7 @@ td:first-child { white-space: normal; }
   </div>
 
   <div class="card">
-    <canvas id="chart-regrettable"></canvas>
+    <canvas id="chart-regrettable" height="160"></canvas>
   </div>
 
   <button class="detail-toggle" onclick="toggleDetail(this)">Детали: таблица YTD + Great Functions + Verticals</button>
@@ -1259,11 +1260,18 @@ td:first-child { white-space: normal; }
       <div style="font-size:11px;color:var(--text3);margin-top:8px">HR-Tech &middot; &Delta;+0.09</div>
     </div>
     <div class="gauge-card">
-      <div class="gauge-label"><span data-tip="i0/i1 метрики — ключевые HR-метрики уровня 0 и 1 в системе HR-аналитики">i0/i1</span> Available Metrics %</div>
-      <div class="gauge-value" style="color:var(--red)">43%</div>
-      <div class="gauge-target">25 из 58 &middot; Target: 100%</div>
-      <div class="gauge-bar"><div class="gauge-fill" style="width:43%;background:var(--red)"></div></div>
-      <div style="font-size:11px;color:var(--text3);margin-top:8px">Analytics &middot; &Delta;+33 метрики</div>
+      <div class="gauge-label"><span data-tip="i0/i1 метрики — ключевые HR-метрики уровня 0 и 1 в системе HR-аналитики">i0/i1</span> Автоматизация</div>
+      <div class="gauge-value" style="color:var(--yellow)">68%</div>
+      <div class="gauge-target">Автоматизировано метрик</div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:68%;background:var(--yellow)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Analytics &middot; Target: 100%</div>
+    </div>
+    <div class="gauge-card">
+      <div class="gauge-label"><span data-tip="i0 метрики — ключевые HR-метрики уровня 0 (top-level)">i0</span> Рассчитано</div>
+      <div class="gauge-value" style="color:var(--green)">90%</div>
+      <div class="gauge-target">Рассчитано метрик i0</div>
+      <div class="gauge-bar"><div class="gauge-fill" style="width:90%;background:var(--green)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Analytics &middot; Target: 100%</div>
     </div>
     <div class="gauge-card">
       <div class="gauge-label">Data Accuracy (ошибки)</div>
@@ -1311,11 +1319,16 @@ const MONTHS = ['Апр\'25','Май\'25','Июн\'25','Июл\'25','Авг\'25'
 const MONTHS13 = ['Мар\'25','Апр\'25','Май\'25','Июн\'25','Июл\'25','Авг\'25','Сен\'25','Окт\'25','Ноя\'25','Дек\'25','Янв\'26','Фев\'26','Мар\'26'];
 
 // Reusable datalabels config for line charts (%)
-const DL_PCT = { display: true, anchor: 'end', align: 'top', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6 };
-const DL_PCT_BOT = { display: true, anchor: 'start', align: 'bottom', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6 };
+const DL_PCT = { display: 'auto', anchor: 'end', align: 'top', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6 };
+const DL_PCT_BOT = { display: 'auto', anchor: 'start', align: 'bottom', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6 };
 const DL_INT = { display: true, anchor: 'end', align: 'top', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 6, formatter: v => v.toLocaleString('ru-RU') };
 const DL_NONE = { display: false };
 const DL_BAR = { display: true, anchor: 'end', align: 'end', font: { size: 11, weight: 600 }, color: '#1a1d2e', offset: 4, formatter: v => v + '%' };
+// Larger, color-matched datalabels for headline line charts
+const DL_LG_BLUE = { display: 'auto', anchor: 'end', align: 'top', font: { size: 13, weight: 700 }, color: '#2563eb', offset: 10 };
+const DL_LG_PURPLE_BOT = { display: 'auto', anchor: 'start', align: 'bottom', font: { size: 13, weight: 700 }, color: '#7c3aed', offset: 10 };
+const DL_LG_ORANGE = { display: 'auto', anchor: 'end', align: 'top', font: { size: 13, weight: 700 }, color: '#d97706', offset: 10 };
+const DL_LG_RED = { display: 'auto', anchor: 'end', align: 'top', font: { size: 13, weight: 700 }, color: '#dc2626', offset: 10 };
 
 // ===== DETAIL TOGGLE =====
 function toggleDetail(btn) {
@@ -1363,13 +1376,14 @@ new Chart(document.getElementById('chart-attrition-all'), {
   data: {
     labels: MONTHS13,
     datasets: [
-      { label: 'All Avito факт', data: [2.33,2.25,1.92,1.85,2.42,2.67,2.64,2.61,2.19,2.31,1.57,3.10,1.83], borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, datalabels: DL_PCT },
+      { label: 'All Avito факт', data: [2.33,2.25,1.92,1.85,2.42,2.67,2.64,2.61,2.19,2.31,1.57,3.10,1.83], borderColor: '#3b82f6', tension: 0.3, pointRadius: 4, datalabels: DL_LG_BLUE },
       { label: 'Прошлый год', data: [2.04,2.31,2.01,2.26,2.46,2.38,2.30,2.65,2.56,2.18,2.00,2.06,2.33], borderColor: '#9ca3af', borderDash: [4,4], tension: 0.3, pointRadius: 2, datalabels: DL_NONE },
       { label: 'Target 2.7%', data: Array(13).fill(2.7), borderColor: '#ef4444', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE }
     ]
   },
   options: {
-    responsive: true,
+    responsive: true, aspectRatio: 1.7,
+    layout: { padding: { top: 16, right: 12, left: 4 } },
     plugins: { legend: { position: 'top' }, title: { display: true, text: 'Attrition % (месяц) — All Avito', font: { size: 14, weight: 600 } } },
     scales: { y: { min: 0, max: 5, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
   }
@@ -1381,14 +1395,15 @@ new Chart(document.getElementById('chart-attrition-tech'), {
   data: {
     labels: MONTHS13,
     datasets: [
-      { label: 'P&T (Tech, Product, DS)', data: [1.56,1.23,1.06,0.84,1.55,1.54,2.23,1.94,1.21,1.44,1.02,4.05,1.10], borderColor: '#8b5cf6', tension: 0.3, pointRadius: 4, datalabels: DL_PCT },
-      { label: 'Non-PnT (остальные)', data: [2.77,2.85,2.43,2.45,2.91,3.34,2.87,2.99,2.77,2.83,1.90,2.53,2.28], borderColor: '#f59e0b', tension: 0.3, pointRadius: 4, datalabels: DL_PCT_BOT },
+      { label: 'P&T (Tech, Product, DS)', data: [1.56,1.23,1.06,0.84,1.55,1.54,2.23,1.94,1.21,1.44,1.02,4.05,1.10], borderColor: '#8b5cf6', tension: 0.3, pointRadius: 4, datalabels: DL_LG_PURPLE_BOT },
+      { label: 'Non-PnT (остальные)', data: [2.77,2.85,2.43,2.45,2.91,3.34,2.87,2.99,2.77,2.83,1.90,2.53,2.28], borderColor: '#f59e0b', tension: 0.3, pointRadius: 4, datalabels: DL_LG_ORANGE },
       { label: 'Target P&T 1.3%', data: Array(13).fill(1.3), borderColor: '#8b5cf6', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE },
       { label: 'Target Non-PnT 2.7%', data: Array(13).fill(2.7), borderColor: '#f59e0b', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE }
     ]
   },
   options: {
-    responsive: true,
+    responsive: true, aspectRatio: 1.7,
+    layout: { padding: { top: 16, right: 12, left: 4, bottom: 4 } },
     plugins: { legend: { position: 'top' }, title: { display: true, text: 'Attrition % — P&T vs Non-PnT', font: { size: 14, weight: 600 } } },
     scales: { y: { min: 0, max: 5, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
   }
@@ -1400,13 +1415,14 @@ new Chart(document.getElementById('chart-regrettable'), {
   data: {
     labels: MONTHS13,
     datasets: [
-      { label: 'Regrettable нарастающий YTD %', data: [0.66,1.13,1.57,2.13,2.88,3.56,4.47,5.20,5.93,6.60,7.05,8.64,9.17], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.06)', fill: true, tension: 0.3, pointRadius: 4, datalabels: DL_PCT },
+      { label: 'Regrettable нарастающий YTD %', data: [0.66,1.13,1.57,2.13,2.88,3.56,4.47,5.20,5.93,6.60,7.05,8.64,9.17], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.06)', fill: true, tension: 0.3, pointRadius: 4, datalabels: DL_LG_RED },
       { label: 'Прошлый год (YTD)', data: [0.42,1.17,1.68,2.26,2.83,3.44,3.86,4.39,4.98,5.37,5.84,6.20,6.86], borderColor: '#9ca3af', borderDash: [4,4], tension: 0.3, pointRadius: 2, datalabels: DL_NONE },
       { label: 'Потолок (target)', data: [2.7,5.4,8.1,10.8,13.5,16.2,18.9,21.6,24.3,27.0,29.7,32.4,35.1], borderColor: '#10b981', borderDash: [6,4], pointRadius: 0, borderWidth: 1.5, datalabels: DL_NONE }
     ]
   },
   options: {
-    responsive: true,
+    responsive: true, aspectRatio: 2.4,
+    layout: { padding: { top: 18, right: 14, left: 4 } },
     plugins: { legend: { position: 'top' }, title: { display: true, text: 'Regrettable Attrition — нарастающий YTD %', font: { size: 14, weight: 600 } } },
     scales: { y: { min: 0, grid: { color: '#f1f3f9' } }, x: { grid: { display: false } } }
   }
